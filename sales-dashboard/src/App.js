@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import CustomHeader from './components/Header';
 import SalesPage from './pages/SalesPage'; // Import the SalesPage component
 import ReportPage from './pages/ReportPage'; // Assuming you will create this page similarly
+import ProductPage from './pages/ProductPage'; // Assuming you will create this page similarly
 import './App.css';
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
         <Routes>
           <Route path="/sales" element={<SalesPage />} />
           <Route path="/report" element={<ReportPage />} />
+          <Route path="/product" element={<ProductPage />} />
           <Route path="/" element={<SalesPage />} /> {/* Default route */}
         </Routes>
       </Layout>

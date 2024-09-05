@@ -26,6 +26,9 @@ const CustomHeader = () => {
             <Menu.Item key="report">
               <Link to="/report">Report</Link>
             </Menu.Item>
+            <Menu.Item key="product">
+              <Link to="/product">Product</Link>
+            </Menu.Item>
           </Menu>
         </Col>
         <Col flex="none" className="user-profile-col">
