@@ -1,24 +1,23 @@
-import logo from './logo.svg';
+import React from 'react';
+import { Layout } from 'antd';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import CustomHeader from './components/Header';
+import SalesPage from './pages/SalesPage'; // Import the SalesPage component
+import ReportPage from './pages/ReportPage'; // Assuming you will create this page similarly
 import './App.css';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Layout className="app">
+        <CustomHeader />
+        <Routes>
+          <Route path="/sales" element={<SalesPage />} />
+          <Route path="/report" element={<ReportPage />} />
+          <Route path="/" element={<SalesPage />} /> {/* Default route */}
+        </Routes>
+      </Layout>
+    </Router>
   );
 }
 
