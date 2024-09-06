@@ -24,12 +24,13 @@ const ProductsTable = () => {
     setLoading(true);
     try {
       const response = await axios.get('http://127.0.0.1:8000/api/products/');
-      const formattedData = response.data.map(item => ({
+      const formattedData = response.data.data.map(item => ({
         key: item.PRODUCT_ID,
         productCode: item.PRODUCT_CODE,
         productName: item.PRODUCT_NAME,
         productPrice: `Rp. ${item.PRODUCT_PRICE.toLocaleString()}`,
-        productStock: item.PRODUCT_STOCK
+        productStock: item.PRODUCT_STOCK,
+        productStatus: item.PRODUCT_STATUS
       }));
       setDataSource(formattedData);
       setFilteredData(formattedData);
@@ -85,13 +86,13 @@ const ProductsTable = () => {
     setLoading(true);
     try {
       const response = await axios.get(`http://127.0.0.1:8000/api/products/${record.key}/`);
-      setEditingProduct(response.data);
+      setEditingProduct(response.data.data);
       form.setFieldsValue({
-        PRODUCT_CODE: response.data.PRODUCT_CODE,
-        PRODUCT_NAME: response.data.PRODUCT_NAME,
-        PRODUCT_PRICE: response.data.PRODUCT_PRICE,
-        PRODUCT_STATUS: response.data.PRODUCT_STATUS,
-        PRODUCT_STOCK: response.data.PRODUCT_STOCK,
+        PRODUCT_CODE: response.data.data.PRODUCT_CODE,
+        PRODUCT_NAME: response.data.data.PRODUCT_NAME,
+        PRODUCT_PRICE: response.data.data.PRODUCT_PRICE,
+        PRODUCT_STATUS: response.data.data.PRODUCT_STATUS,
+        PRODUCT_STOCK: response.data.data.PRODUCT_STOCK,
       });
       setIsEditModalVisible(true);
     } catch (error) {
@@ -168,6 +169,11 @@ const ProductsTable = () => {
       title: 'Stock',
       dataIndex: 'productStock',
       key: 'productStock',
+    },
+    {
+      title: 'Status',
+      dataIndex: 'productStatus',
+      key: 'productStatus',
     },
     {
       title: 'Action',

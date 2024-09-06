@@ -1,3 +1,9 @@
+from django.http import JsonResponse
+from django.db import connection
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+
 @api_view(['GET'])
 def get_products(request):
     with connection.cursor() as cursor:

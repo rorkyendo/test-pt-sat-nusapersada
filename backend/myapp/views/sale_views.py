@@ -1,3 +1,9 @@
+from django.http import JsonResponse
+from django.db import connection
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+
 @api_view(['GET'])
 def get_sales(request):
     keyword = request.query_params.get('keyword', '')
@@ -77,12 +83,13 @@ def create_sale(request):
             product_stock = cursor.fetchone()[0]
 
             if quantity > product_stock:
+                # Add item to failed_items list
                 failed_items.append({
                     "PRODUCT_ID": product_id,
                     "message": "Quantity exceeds available stock"
                 })
             else:
-                # Insert sale item
+                # Insert sale item if quantity is valid
                 cursor.execute("""
                     INSERT INTO sale_items (SALE_ID, PRODUCT_ID, ITEM_QTY, PRODUCT_PRICE) 
                     VALUES (%s, %s, %s, %s)
@@ -91,6 +98,7 @@ def create_sale(request):
                 # Update product stock
                 cursor.execute("UPDATE products SET PRODUCT_STOCK = PRODUCT_STOCK - %s WHERE PRODUCT_ID = %s", [quantity, product_id])
 
+                # Add item to success_items list
                 success_items.append({
                     "PRODUCT_ID": product_id,
                     "message": "Item successfully inserted"
@@ -99,6 +107,7 @@ def create_sale(request):
         # Update sale_items_total in sales table
         cursor.execute("UPDATE sales SET SALE_ITEMS_TOTAL = %s WHERE SALE_ID = %s", [len(success_items), sale_id])
 
+    # Final response with success and failed items
     return JsonResponse({
         "status": 200,
         "sale_id": sale_id,
