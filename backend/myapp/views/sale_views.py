@@ -7,7 +7,7 @@ from rest_framework import status
 @api_view(['GET'])
 def get_sales(request):
     with connection.cursor() as cursor:
-        cursor.execute("SELECT * FROM sales")
+        cursor.execute("SELECT * FROM v_sales")
         rows = cursor.fetchall()
         columns = [col[0] for col in cursor.description]
         results = [dict(zip(columns, row)) for row in rows]
@@ -16,7 +16,16 @@ def get_sales(request):
 @api_view(['GET'])
 def get_sale(request, sale_id):
     with connection.cursor() as cursor:
-        cursor.execute("SELECT * FROM sales WHERE SALE_ID = %s", [sale_id])
+        cursor.execute("SELECT * FROM v_sales WHERE SALE_ID = %s", [sale_id])
+        row = cursor.fetchone()
+        columns = [col[0] for col in cursor.description]
+        result = dict(zip(columns, row)) if row else {}
+    return JsonResponse(result, safe=False)
+
+@api_view(['GET'])
+def get_last_sale(request):
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT sale_id FROM v_sales ORDER BY sale_id DESC LIMIT 1;")
         row = cursor.fetchone()
         columns = [col[0] for col in cursor.description]
         result = dict(zip(columns, row)) if row else {}

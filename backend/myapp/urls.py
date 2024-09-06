@@ -1,7 +1,7 @@
 from django.urls import path
 from .views.customer_views import get_customers, get_customer, create_customer, update_customer, delete_customer
-from .views.product_views import get_products, get_product, create_product, update_product, delete_product
-from .views.sale_views import get_sales, get_sale, create_sale, update_sale, delete_sale
+from .views.product_views import get_products, get_product, get_product_by_code, create_product, update_product, delete_product
+from .views.sale_views import get_sales, get_last_sale, get_sale, create_sale, update_sale, delete_sale
 from .views.sale_item_views import get_sale_items, get_sale_item, create_sale_item, update_sale_item, delete_sale_item
 
 urlpatterns = [
@@ -15,12 +15,14 @@ urlpatterns = [
     # Product URLs
     path('products/', get_products),
     path('products/<int:product_id>/', get_product),
+    path('products/<str:product_code>/', get_product_by_code),
     path('products/create/', create_product),
     path('products/update/<int:product_id>/', update_product),
     path('products/delete/<int:product_id>/', delete_product),
 
     # Sale URLs
     path('sales/', get_sales),
+    path('lastSale/', get_last_sale),
     path('sales/<int:sale_id>/', get_sale),
     path('sales/create/', create_sale),
     path('sales/update/<int:sale_id>/', update_sale),

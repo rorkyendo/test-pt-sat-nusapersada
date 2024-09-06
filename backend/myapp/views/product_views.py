@@ -22,6 +22,15 @@ def get_product(request, product_id):
         result = dict(zip(columns, row)) if row else {}
     return JsonResponse(result, safe=False)
 
+@api_view(['GET'])
+def get_product_by_code(request, product_code):
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM products WHERE PRODUCT_CODE = %s", [product_code])
+        row = cursor.fetchone()
+        columns = [col[0] for col in cursor.description]
+        result = dict(zip(columns, row)) if row else {}
+    return JsonResponse(result, safe=False)
+
 @api_view(['POST'])
 def create_product(request):
     product_code = request.data.get('PRODUCT_CODE')
