@@ -33,11 +33,12 @@ const Transaction = () => {
     setLoading(true);
     try {
       const response = await axios.get('http://127.0.0.1:8000/api/lastSale/');
-      if (response.data[0]) {
-        console.log('disini')
-        setSaleID(response.data[0].SALE_ID);
+      if (Object.keys(response.data).length > 0) {
+        setSaleID(response.data.SALE_ID);
+        sessionStorage.setItem('saleID',response.data.SALE_ID)
       }else{
         setSaleID('1');
+        sessionStorage.setItem('saleID','1')
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -70,7 +71,7 @@ const Transaction = () => {
     try {
       const response = await axios.get('http://127.0.0.1:8000/api/products/'+values+'/');
       setProdData(response.data);
-      if (response.data) {
+      if (Object.keys(response.data).length > 0) {
         notification.success({
           message: 'Success',
           description: 'Product Found '+response.data.PRODUCT_NAME+'!',
