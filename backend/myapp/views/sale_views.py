@@ -87,8 +87,10 @@ def create_sale(request):
             if quantity > product_stock:
                 # Add item to failed_items list
                 failed_items.append({
-                    "PRODUCT_ID": product_id,
-                    "message": "Quantity exceeds available stock"
+                    "id": product_id,
+                    "price": item.get('PRODUCT_PRICE'),
+                    "qty": quantity,
+                    "status": "Failed - not enough Stock"
                 })
             else:
                 # Insert sale item if quantity is valid
@@ -102,21 +104,31 @@ def create_sale(request):
 
                 # Add item to success_items list
                 success_items.append({
-                    "PRODUCT_ID": product_id,
-                    "message": "Item successfully inserted"
+                    "id": product_id,
+                    "price": item.get('PRODUCT_PRICE'),
+                    "qty": quantity,
+                    "status": "Success"
                 })
 
         # Update sale_items_total in sales table
         cursor.execute("UPDATE sales SET SALE_ITEMS_TOTAL = %s WHERE SALE_ID = %s", [len(success_items), sale_id])
 
-    # Final response with success and failed items
-    return JsonResponse({
-        "status": 200,
-        "sale_id": sale_id,
-        "success_items": success_items,
-        "failed_items": failed_items
-    }, safe=False)
+    # Create the final response with success and failed items
+    response_data = {
+        "Code": 200,
+        "message": [
+            {
+                "total_items": len(success_items) + len(failed_items),
+                "total_success": len(success_items),
+                "total_failed": len(failed_items)
+            }
+        ],
+        "items": success_items + failed_items
+    }
 
+    return JsonResponse(response_data, safe=False)
+
+    
 @api_view(['PUT'])
 def update_sale(request, sale_id):
     sale_date = request.data.get('SALE_DATE')

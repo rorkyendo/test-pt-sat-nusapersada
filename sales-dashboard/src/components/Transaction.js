@@ -102,7 +102,7 @@ const Transaction = () => {
   const handleFormSubmit = async (values) => {
     setLoading(true);
     const payload = {
-      SALE_DATE: saleDate, // Use saleDate for transaction date
+      SALE_DATE: saleDate,
       CUSTOMER_ID: customerID,
       SALE_ITEMS: cart.map(item => ({
         PRODUCT_ID: item.PRODUCT_ID,
@@ -111,13 +111,27 @@ const Transaction = () => {
         IS_VERIFY: item.IS_VERIFY,
       })),
     };
-
+  
     try {
       const response = await axios.post('http://127.0.0.1:8000/api/sales/create/', payload);
+      const { message, items } = response.data;
+      const totalItems = message[0].total_items;
+      const totalSuccess = message[0].total_success;
+      const totalFailed = message[0].total_failed;
+  
       notification.success({
-        message: 'Success',
-        description: 'Transaction added successfully!',
+        message: 'Transaction Summary',
+        description: `Total Items: ${totalItems}, Success: ${totalSuccess}, Failed: ${totalFailed}`,
       });
+  
+      // Optional: Display detailed status for each item if needed
+      items.forEach(item => {
+        notification.info({
+          message: `Item ${item.id}`,
+          description: `Price: ${item.price}, Quantity: ${item.qty}, Status: ${item.status}`,
+        });
+      });
+  
       setCart([]); // Clear cart after successful transaction
       form.resetFields();
       navigate('/');
@@ -129,7 +143,7 @@ const Transaction = () => {
     }
     setLoading(false);
   };
-
+  
   const columns = [
     {
       title: 'No',
