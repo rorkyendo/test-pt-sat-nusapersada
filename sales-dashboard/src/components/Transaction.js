@@ -38,8 +38,8 @@ const Transaction = () => {
     try {
       const response = await axios.get('http://127.0.0.1:8000/api/sales/last/');
       if (Object.keys(response.data.data).length > 0) {
-        setSaleID(response.data.data.SALE_ID);
-        sessionStorage.setItem('saleID', response.data.data.SALE_ID);
+        setSaleID(response.data.data.sale_id);
+        sessionStorage.setItem('saleID', response.data.data.sale_id);
       } else {
         setSaleID('1');
         sessionStorage.setItem('saleID', '1');
