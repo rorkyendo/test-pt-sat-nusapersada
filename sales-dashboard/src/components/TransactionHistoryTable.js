@@ -1,34 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Table, Input, Modal, Form, Input as AntInput, Button, Popconfirm, notification, Spin } from 'antd';
+import { Table, Input, Button, Popconfirm, notification, Spin } from 'antd';
 import { Link } from 'react-router-dom';
+import moment from 'moment';
 import '../styles/TransactionHistoryTable.css';
 
 const { Search } = Input;
 
 const TransactionHistoryTable = () => {
   const [dataSource, setDataSource] = useState([]);
-  const [filteredData, setFilteredData] = useState([]);
-  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const [editingTransaction, setEditingTransaction] = useState(null);
-  const [form] = Form.useForm();
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
   const [loading, setLoading] = useState(false);
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   useEffect(() => {
     fetchData();
-  }, [pagination.current, pagination.pageSize]);
+  }, [pagination.current, pagination.pageSize, searchKeyword, startDate, endDate]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/sales/?page=${pagination.current}&page_size=${pagination.pageSize}`);
-      setDataSource(response.data.results);
-      setFilteredData(response.data.results);
+      const response = await axios.get(`http://127.0.0.1:8000/api/sales/`, {
+        params: {
+          keyword: searchKeyword,
+          data_periode_start: startDate,
+          data_periode_end: endDate,
+          total_data_show: pagination.pageSize,
+          page: pagination.current
+        }
+      });
+
+      const formattedData = response.data.data.map(item => ({
+        ...item,
+        SALE_DATE: moment(item.SALE_DATE).format('DD/MM/YYYY') // Format tanggal dengan Moment.js
+      }));
+
+      setDataSource(formattedData);
       setPagination(prev => ({
         ...prev,
-        total: response.data.count
+        total: response.data.total_data,
+        totalPage: response.data.total_page
       }));
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -37,81 +50,15 @@ const TransactionHistoryTable = () => {
   };
 
   const handleSearch = (value) => {
-    if (value) {
-      const filtered = dataSource.filter(item =>
-        item.transactionCode.toLowerCase().includes(value.toLowerCase()) ||
-        item.customer.toLowerCase().includes(value.toLowerCase())
-      );
-      setFilteredData(filtered);
-    } else {
-      setFilteredData(dataSource);
-    }
+    setSearchKeyword(value);
+    setPagination(prev => ({ ...prev, current: 1 })); // Reset to first page on search
   };
 
-  const handleAddClick = () => {
-    setIsModalVisible(true);
-  };
-
-  const handleModalCancel = () => {
-    setIsModalVisible(false);
-    form.resetFields();
-  };
-
-  const handleFormSubmit = async (values) => {
-    setLoading(true);
-    try {
-      await axios.post('http://127.0.0.1:8000/api/sales/create/', values);
-      notification.success({
-        message: 'Success',
-        description: 'Transaction added successfully!',
-      });
-      fetchData();
-      handleModalCancel(); // Close modal on success
-    } catch (error) {
-      console.error('Error adding transaction:', error);
-      notification.error({
-        message: 'Error',
-        description: 'Failed to add transaction.',
-      });
-    }
-    setLoading(false);
-  };
-
-  const handleEditClick = async (record) => {
-    setLoading(true);
-    try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/sales/${record.key}/`);
-      setEditingTransaction(response.data);
-      form.setFieldsValue(response.data);
-      setIsEditModalVisible(true);
-    } catch (error) {
-      console.error('Error fetching transaction details:', error);
-      notification.error({
-        message: 'Error',
-        description: 'Failed to fetch transaction details.',
-      });
-    }
-    setLoading(false);
-  };
-
-  const handleEditFormSubmit = async (values) => {
-    setLoading(true);
-    try {
-      await axios.put(`http://127.0.0.1:8000/api/sales/update/${editingTransaction.id}/`, values);
-      notification.success({
-        message: 'Success',
-        description: 'Transaction updated successfully!',
-      });
-      fetchData();
-      setIsEditModalVisible(false); // Close modal on success
-    } catch (error) {
-      console.error('Error updating transaction:', error);
-      notification.error({
-        message: 'Error',
-        description: 'Failed to update transaction.',
-      });
-    }
-    setLoading(false);
+  const handleDateChange = (dateRange) => {
+    const [start, end] = dateRange || [];
+    setStartDate(start ? start.format('YYYY-MM-DD') : ''); // Format tanggal untuk API
+    setEndDate(end ? end.format('YYYY-MM-DD') : '');
+    setPagination(prev => ({ ...prev, current: 1 })); // Reset to first page on date change
   };
 
   const handleDelete = async (transactionId) => {
@@ -136,8 +83,7 @@ const TransactionHistoryTable = () => {
   const handleTableChange = (pagination) => {
     setPagination({
       ...pagination,
-      current: pagination.current,
-      pageSize: pagination.pageSize
+      current: pagination.current
     });
   };
 
@@ -149,33 +95,37 @@ const TransactionHistoryTable = () => {
     },
     {
       title: 'Transaction Code',
-      dataIndex: 'transactionCode',
-      key: 'transactionCode',
+      dataIndex: 'SALE_ID',
+      key: 'SALE_ID',
+    },
+    {
+      title: 'Sale Date',
+      dataIndex: 'SALE_DATE',
+      key: 'SALE_DATE',
     },
     {
       title: 'Customer',
-      dataIndex: 'customer',
-      key: 'customer',
+      dataIndex: 'CUSTOMER_NAME',
+      key: 'CUSTOMER_NAME',
     },
     {
       title: 'Total Items',
-      dataIndex: 'totalItems',
-      key: 'totalItems',
+      dataIndex: 'SALE_ITEMS_TOTAL',
+      key: 'SALE_ITEMS_TOTAL',
     },
     {
       title: 'Total Price',
-      dataIndex: 'totalPrice',
-      key: 'totalPrice',
+      dataIndex: 'TOTAL_PRICE',
+      key: 'TOTAL_PRICE',
     },
     {
       title: 'Action',
       key: 'action',
       render: (text, record) => (
         <span>
-          <Button onClick={() => handleEditClick(record)} style={{ marginRight: 8 }}>Edit</Button>
           <Popconfirm
             title="Are you sure you want to delete this transaction?"
-            onConfirm={() => handleDelete(record.key)}
+            onConfirm={() => handleDelete(record.SALE_ID)}
             okText="Yes"
             cancelText="No"
           >
@@ -197,111 +147,22 @@ const TransactionHistoryTable = () => {
         onChange={(e) => handleSearch(e.target.value)}
         style={{ marginBottom: 16 }}
       />
-      {loading ? (
-        <Spin size="large" style={{ display: 'block', textAlign: 'center', marginTop: 50 }} />
-      ) : (
-        <Table
-          dataSource={filteredData}
-          columns={columns}
-          pagination={pagination}
-          onChange={handleTableChange}
-          rowKey="key"
-        />
-      )}
-
-      <Modal
-        title="Add Transaction"
-        visible={isModalVisible}
-        onCancel={handleModalCancel}
-        footer={null}
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleFormSubmit}
-        >
-          <Form.Item
-            name="transactionCode"
-            label="Transaction Code"
-            rules={[{ required: true, message: 'Please input the transaction code!' }]}
-          >
-            <AntInput />
-          </Form.Item>
-          <Form.Item
-            name="customer"
-            label="Customer"
-            rules={[{ required: true, message: 'Please input the customer name!' }]}
-          >
-            <AntInput />
-          </Form.Item>
-          <Form.Item
-            name="totalItems"
-            label="Total Items"
-            rules={[{ required: true, message: 'Please input the total items!' }]}
-          >
-            <AntInput type="number" />
-          </Form.Item>
-          <Form.Item
-            name="totalPrice"
-            label="Total Price"
-            rules={[{ required: true, message: 'Please input the total price!' }]}
-          >
-            <AntInput type="number" />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Add Transaction
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
-
-      <Modal
-        title="Edit Transaction"
-        visible={isEditModalVisible}
-        onCancel={() => setIsEditModalVisible(false)}
-        footer={null}
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleEditFormSubmit}
-        >
-          <Form.Item
-            name="transactionCode"
-            label="Transaction Code"
-            rules={[{ required: true, message: 'Please input the transaction code!' }]}
-          >
-            <AntInput />
-          </Form.Item>
-          <Form.Item
-            name="customer"
-            label="Customer"
-            rules={[{ required: true, message: 'Please input the customer name!' }]}
-          >
-            <AntInput />
-          </Form.Item>
-          <Form.Item
-            name="totalItems"
-            label="Total Items"
-            rules={[{ required: true, message: 'Please input the total items!' }]}
-          >
-            <AntInput type="number" />
-          </Form.Item>
-          <Form.Item
-            name="totalPrice"
-            label="Total Price"
-            rules={[{ required: true, message: 'Please input the total price!' }]}
-          >
-            <AntInput type="number" />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Update Transaction
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
+      {/* Date picker component here */}
+      <Table
+        dataSource={dataSource}
+        columns={columns}
+        pagination={{
+          current: pagination.current,
+          pageSize: pagination.pageSize,
+          total: pagination.total,
+          onChange: (page, pageSize) => setPagination({ ...pagination, current: page, pageSize }),
+          pageSizeOptions: ['10', '20', '50', '100'], // Options to select number of rows per page
+          showSizeChanger: true, // Show page size changer
+          showTotal: (total, range) => `Showing ${range[0]} to ${range[1]} of ${total} entries`, // Display total entries
+        }}
+        rowKey="SALE_ID"
+      />
+      {loading && <Spin size="large" style={{ display: 'block', textAlign: 'center', marginTop: 50 }} />}
     </div>
   );
 };

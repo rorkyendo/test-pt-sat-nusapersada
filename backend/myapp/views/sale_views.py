@@ -14,17 +14,18 @@ def get_sales(request):
 
     offset = (page - 1) * total_data_show
 
-    query = "SELECT * FROM v_sales WHERE 1=1"
+    query = "SELECT s.SALE_ID, s.SALE_DATE, s.CUSTOMER_ID, s.SALE_ITEMS_TOTAL, c.CUSTOMER_NAME, COALESCE(SUM(si.PRODUCT_PRICE * si.ITEM_QTY), 0) AS TOTAL_PRICE FROM sales s LEFT JOIN customers c ON s.CUSTOMER_ID = c.CUSTOMER_ID LEFT JOIN sale_items si ON s.SALE_ID = si.SALE_ID WHERE 1=1"
     params = []
 
     if keyword:
-        query += " AND (sale_code LIKE %s OR customer LIKE %s)"
+        query += " AND (s.SALE_ID LIKE %s OR c.CUSTOMER_NAME LIKE %s)"
         params.extend([f'%{keyword}%', f'%{keyword}%'])
 
     if data_periode_start and data_periode_end:
-        query += " AND sale_date BETWEEN %s AND %s"
+        query += " AND s.SALE_DATE BETWEEN %s AND %s"
         params.extend([data_periode_start, data_periode_end])
 
+    query += " GROUP BY s.SALE_ID, s.SALE_DATE, s.CUSTOMER_ID, s.SALE_ITEMS_TOTAL, c.CUSTOMER_NAME"
     query += " LIMIT %s OFFSET %s"
     params.extend([total_data_show, offset])
 
@@ -34,11 +35,29 @@ def get_sales(request):
         columns = [col[0] for col in cursor.description]
         results = [dict(zip(columns, row)) for row in rows]
 
+    # Count total data for pagination
+    count_query = "SELECT COUNT(DISTINCT s.SALE_ID) FROM sales s LEFT JOIN customers c ON s.CUSTOMER_ID = c.CUSTOMER_ID WHERE 1=1"
+    count_params = []
+
+    if keyword:
+        count_query += " AND (s.SALE_ID LIKE %s OR c.CUSTOMER_NAME LIKE %s)"
+        count_params.extend([f'%{keyword}%', f'%{keyword}%'])
+
+    if data_periode_start and data_periode_end:
+        count_query += " AND s.SALE_DATE BETWEEN %s AND %s"
+        count_params.extend([data_periode_start, data_periode_end])
+
+    with connection.cursor() as cursor:
+        cursor.execute(count_query, count_params)
+        total_count = cursor.fetchone()[0]
+
     return JsonResponse({
         "status": 200,
         "data": results,
+        "total_data": total_count,
         "total_data_show": total_data_show,
-        "page": page
+        "total_page": -(-total_count // total_data_show),  # Calculate total pages
+        "current_page": page
     }, safe=False)
 
 @api_view(['GET'])
@@ -128,7 +147,7 @@ def create_sale(request):
 
     return JsonResponse(response_data, safe=False)
 
-    
+
 @api_view(['PUT'])
 def update_sale(request, sale_id):
     sale_date = request.data.get('SALE_DATE')
