@@ -69,9 +69,11 @@ def create_sale(request):
     failed_items = []
 
     with connection.cursor() as cursor:
-        # Insert sale header first
-        cursor.execute("INSERT INTO sales (SALE_DATE, CUSTOMER_ID) VALUES (%s, %s) RETURNING SALE_ID", [sale_date, customer_id])
-        sale_id = cursor.fetchone()[0]
+        # Insert sale header first (without RETURNING)
+        cursor.execute("INSERT INTO sales (SALE_DATE, CUSTOMER_ID) VALUES (%s, %s)", [sale_date, customer_id])
+
+        # Get the last inserted SALE_ID
+        sale_id = cursor.lastrowid
 
         # Insert sale items and update product stock
         for item in sale_items:

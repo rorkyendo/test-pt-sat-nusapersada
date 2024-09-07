@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Table, Row, Col, Input, Form, Input as AntInput, Button, Select, notification, InputNumber, Popconfirm } from 'antd';
+import { useNavigate } from 'react-router-dom';
 import '../styles/TransactionHistoryTable.css';
 
 const { Option } = Select;
@@ -9,10 +10,12 @@ const Transaction = () => {
   const [form] = Form.useForm();
   const [customerData, setCustomer] = useState([]);
   const [saleID, setSaleID] = useState('');
+  const [customerID, setCustomerID] = useState('');
   const [cart, setCart] = useState([]); // Menyimpan produk yang sudah ditambahkan
   const [prodData, setProdData] = useState(null); // Data produk yang dicari
   const [loading, setLoading] = useState(false);
   const [saleDate, setSaleDate] = useState(new Date().toISOString().split('T')[0]); // Initialize with today's date
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchData();
@@ -100,7 +103,7 @@ const Transaction = () => {
     setLoading(true);
     const payload = {
       SALE_DATE: saleDate, // Use saleDate for transaction date
-      CUSTOMER_ID: values.CUSTOMER_ID,
+      CUSTOMER_ID: customerID,
       SALE_ITEMS: cart.map(item => ({
         PRODUCT_ID: item.PRODUCT_ID,
         PRODUCT_PRICE: item.PRODUCT_PRICE,
@@ -117,6 +120,7 @@ const Transaction = () => {
       });
       setCart([]); // Clear cart after successful transaction
       form.resetFields();
+      navigate('/');
     } catch (error) {
       notification.error({
         message: 'Error',
@@ -184,10 +188,9 @@ const Transaction = () => {
           </Col>
           <Col xs={24} md={4}>
             <Form.Item
-              label="Transaction Date"
-              name="SALE_DATE"
-              rules={[{ required: true, message: 'Please input transaction date!' }]}
-              style={{ marginBottom: '-35px' }}
+                label="Transaction Date"
+                name="SALE_DATE"
+                style={{ marginBottom: '-35px' }}
             ></Form.Item>
           </Col>
           <Col xs={24} md={20}>
@@ -197,12 +200,17 @@ const Transaction = () => {
             <Form.Item
               label="Customer"
               name="CUSTOMER_ID"
-              rules={[{ required: true, message: 'Please select the customer!' }]}
               style={{ marginBottom: '-35px' }}
             ></Form.Item>
           </Col>
           <Col xs={24} md={20}>
-            <Select placeholder="Select Customer" style={{ width: '100%' }}>
+            <Select
+              placeholder="Select Customer"
+              onChange={(value) => {
+                setCustomerID(value);
+              }}
+              style={{ width: '100%' }}
+            >
               {customerData.map((customer) => (
                 <Option key={customer.CUSTOMER_ID} value={customer.CUSTOMER_ID}>
                   {customer.CUSTOMER_NAME}
