@@ -27,3 +27,7 @@
 
 - Transaction Page
 ![image](https://github.com/user-attachments/assets/98308a93-10be-4cf6-a680-b5209e1324ca)
+
+- Customer Page
+![image](https://github.com/user-attachments/assets/dcad15e7-1653-486d-bf8c-f45efca61257)
+
