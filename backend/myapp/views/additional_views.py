@@ -29,10 +29,14 @@ def compare_sales(request):
 def get_popular_products(request):
     with connection.cursor() as cursor:
         cursor.execute("""
-            SELECT product_id, SUM(total_price) as total_price 
-            FROM sale_items 
-            GROUP BY product_id 
-            ORDER BY total_price DESC 
+            SELECT p.PRODUCT_NAME AS name,
+                   p.PRODUCT_PRICE AS price,
+                   SUM(si.ITEM_QTY) AS qty,
+                   SUM(si.ITEM_QTY * si.PRODUCT_PRICE) AS total_price
+            FROM sale_items si
+            JOIN products p ON si.PRODUCT_ID = p.PRODUCT_ID
+            GROUP BY p.PRODUCT_ID, p.PRODUCT_NAME, p.PRODUCT_PRICE
+            ORDER BY total_price DESC
             LIMIT 5
         """)
         rows = cursor.fetchall()
@@ -40,3 +44,4 @@ def get_popular_products(request):
         results = [dict(zip(columns, row)) for row in rows]
 
     return JsonResponse({"status": 200, "data": results}, safe=False)
+
