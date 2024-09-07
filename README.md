@@ -9,7 +9,7 @@
 - Install requirements nya dengan pip install -r requirements.txt
 - Masuk ke folder backend
 - Jalankan dengan perintah python manage.py runserver
-## Frontend Infromation
+## Frontend Information
 - Dibuat menggunakan ReactJS
 - Pastikan menginstall nodeJS (v20.13.1) terlebih dahulu
 - Masuk ke folder sales-dashboard
