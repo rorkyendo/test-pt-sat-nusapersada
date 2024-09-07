@@ -1,4 +1,8 @@
 # test-pt-sat-nusapersada
+## Database Information
+- Menggunakan mysql
+- Jalankan mysql server
+- Import file database.sql
 ## Backend Information
 - Backend dibuat menggunakan django
 - Jalankan backend dengan python 3.10.x
