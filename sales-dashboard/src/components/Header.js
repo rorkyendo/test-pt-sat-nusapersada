@@ -23,8 +23,8 @@ const CustomHeader = () => {
             <Menu.Item key="sales">
               <Link to="/sales">Sales</Link>
             </Menu.Item>
-            <Menu.Item key="report">
-              <Link to="/report">Report</Link>
+            <Menu.Item key="customer">
+              <Link to="/customer">Customer</Link>
             </Menu.Item>
             <Menu.Item key="product">
               <Link to="/product">Product</Link>
