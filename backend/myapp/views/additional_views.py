@@ -10,14 +10,14 @@ def compare_sales(request):
     date_end = request.query_params.get('date_end', None)
 
     with connection.cursor() as cursor:
-        query = "SELECT sale_date, SUM(total_price) as total_price FROM sales WHERE 1=1"
+        query = "SELECT SALE_DATE, SUM(TOTAL_PRICE) as TOTAL_PRICE FROM v_sales WHERE 1=1"
         params = []
 
         if date_start and date_end:
-            query += " AND sale_date BETWEEN %s AND %s"
+            query += " AND SALE_DATE BETWEEN %s AND %s"
             params.extend([date_start, date_end])
 
-        query += " GROUP BY sale_date ORDER BY sale_date ASC"
+        query += " GROUP BY SALE_DATE ORDER BY SALE_DATE ASC"
         cursor.execute(query, params)
         rows = cursor.fetchall()
         columns = [col[0] for col in cursor.description]
