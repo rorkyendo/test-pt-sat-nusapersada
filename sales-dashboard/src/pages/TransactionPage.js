@@ -4,7 +4,7 @@ import Transaction from '../components/Transaction';
 
 const { Content } = Layout;
 
-const SalesPage = () => (
+const TransactionPage = () => (
   <Content style={{ padding: '20px' }}>
     <Row gutter={[16, 16]}>
       <Col xs={24} md={24}>
@@ -14,4 +14,4 @@ const SalesPage = () => (
   </Content>
 );
 
-export default SalesPage;
+export default TransactionPage;
