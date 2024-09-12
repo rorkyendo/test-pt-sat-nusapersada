@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchSales, deleteSale } from '../redux/actions/saleActions'; // Import your actions
 import { Table, Input, Button, Popconfirm, notification, Spin } from 'antd';
 import { Link } from 'react-router-dom';
 import moment from 'moment';
@@ -8,9 +9,14 @@ import '../styles/TransactionHistoryTable.css';
 const { Search } = Input;
 
 const TransactionHistoryTable = () => {
-  const [dataSource, setDataSource] = useState([]);
-  const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
-  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+  const { sales, total, loading } = useSelector(state => ({
+    sales: state.saleState.sales,
+    total: state.saleState.total,
+    loading: state.saleState.loading,
+  }));
+  
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
   const [searchKeyword, setSearchKeyword] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -19,71 +25,44 @@ const TransactionHistoryTable = () => {
     fetchData();
   }, [pagination.current, pagination.pageSize, searchKeyword, startDate, endDate]);
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/sales/`, {
-        params: {
-          keyword: searchKeyword,
-          data_periode_start: startDate,
-          data_periode_end: endDate,
-          total_data_show: pagination.pageSize,
-          page: pagination.current
-        }
+  const fetchData = () => {
+    dispatch(fetchSales({
+      keyword: searchKeyword,
+      data_periode_start: startDate,
+      data_periode_end: endDate,
+      total_data_show: pagination.pageSize,
+      page: pagination.current
+    })).catch((error) => {
+      notification.error({
+        message: 'Error',
+        description: error.message || 'Error fetching data',
       });
-
-      const formattedData = response.data.data.map(item => ({
-        ...item,
-        SALE_DATE: moment(item.SALE_DATE).format('DD/MM/YYYY') // Format tanggal dengan Moment.js
-      }));
-
-      setDataSource(formattedData);
-      setPagination(prev => ({
-        ...prev,
-        total: response.data.total_data,
-        totalPage: response.data.total_page
-      }));
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-    setLoading(false);
+    });
   };
 
   const handleSearch = (value) => {
     setSearchKeyword(value);
-    setPagination(prev => ({ ...prev, current: 1 })); // Reset to first page on search
+    setPagination(prev => ({ ...prev, current: 1 }));
   };
 
   const handleDateChange = (dateRange) => {
     const [start, end] = dateRange || [];
-    setStartDate(start ? start.format('YYYY-MM-DD') : ''); // Format tanggal untuk API
+    setStartDate(start ? start.format('YYYY-MM-DD') : '');
     setEndDate(end ? end.format('YYYY-MM-DD') : '');
-    setPagination(prev => ({ ...prev, current: 1 })); // Reset to first page on date change
+    setPagination(prev => ({ ...prev, current: 1 }));
   };
 
-  const handleDelete = async (transactionId) => {
-    setLoading(true);
-    try {
-      await axios.delete(`http://127.0.0.1:8000/api/sales/delete/${transactionId}/`);
+  const handleDelete = (transactionId) => {
+    dispatch(deleteSale(transactionId)).then(() => {
       notification.success({
         message: 'Success',
         description: 'Transaction deleted successfully!',
       });
-      fetchData();
-    } catch (error) {
-      console.error('Error deleting transaction:', error);
+    }).catch((error) => {
       notification.error({
         message: 'Error',
         description: 'Failed to delete transaction.',
       });
-    }
-    setLoading(false);
-  };
-
-  const handleTableChange = (pagination) => {
-    setPagination({
-      ...pagination,
-      current: pagination.current
     });
   };
 
@@ -92,11 +71,6 @@ const TransactionHistoryTable = () => {
       title: 'No',
       dataIndex: 'key',
       key: 'key',
-    },
-    {
-      title: 'Transaction Code',
-      dataIndex: 'SALE_ID',
-      key: 'SALE_ID',
     },
     {
       title: 'Sale Date',
@@ -147,18 +121,20 @@ const TransactionHistoryTable = () => {
         onChange={(e) => handleSearch(e.target.value)}
         style={{ marginBottom: 16 }}
       />
-      {/* Date picker component here */}
       <Table
-        dataSource={dataSource}
+        dataSource={sales.map(item => ({
+          ...item,
+          SALE_DATE: moment(item.SALE_DATE).format('DD/MM/YYYY')
+        }))}
         columns={columns}
         pagination={{
           current: pagination.current,
           pageSize: pagination.pageSize,
-          total: pagination.total,
+          total: total,
           onChange: (page, pageSize) => setPagination({ ...pagination, current: page, pageSize }),
-          pageSizeOptions: ['10', '20', '50', '100'], // Options to select number of rows per page
-          showSizeChanger: true, // Show page size changer
-          showTotal: (total, range) => `Showing ${range[0]} to ${range[1]} of ${total} entries`, // Display total entries
+          pageSizeOptions: ['10', '20', '50', '100'],
+          showSizeChanger: true,
+          showTotal: (total, range) => `Showing ${range[0]} to ${range[1]} of ${total} entries`,
         }}
         rowKey="SALE_ID"
       />

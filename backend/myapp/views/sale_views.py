@@ -25,7 +25,7 @@ def get_sales(request):
         query += " AND s.SALE_DATE BETWEEN %s AND %s"
         params.extend([data_periode_start, data_periode_end])
 
-    query += " GROUP BY s.SALE_ID, s.SALE_DATE, s.CUSTOMER_ID, s.SALE_ITEMS_TOTAL, c.CUSTOMER_NAME"
+    query += " GROUP BY s.SALE_ID, s.SALE_DATE, s.CUSTOMER_ID, s.SALE_ITEMS_TOTAL, c.CUSTOMER_NAME ORDER BY SALE_DATE DESC"
     query += " LIMIT %s OFFSET %s"
     params.extend([total_data_show, offset])
 
