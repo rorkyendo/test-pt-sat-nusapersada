@@ -1,55 +1,41 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { Table, Input, Modal, Form, Input as AntInput, Button, Select, Popconfirm, Spin, notification } from 'antd';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchProducts, addProduct, editProduct, deleteProduct } from '../redux/actions/productActions';
+import { Table, Input, Input as AntInput, Modal, Form, Button, Select, Popconfirm, Spin, notification } from 'antd';
 import '../styles/ProductsTable.css';
 
 const { Search } = Input;
 const { Option } = Select;
 
 const ProductsTable = () => {
-  const [dataSource, setDataSource] = useState([]);
+  const dispatch = useDispatch();
+  const { products, loading, error } = useSelector(state => state.productsState);
+
   const [filteredData, setFilteredData] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    dispatch(fetchProducts());
+  }, [dispatch]);
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get('http://127.0.0.1:8000/api/products/');
-      const formattedData = response.data.data.map(item => ({
-        key: item.PRODUCT_ID,
-        productCode: item.PRODUCT_CODE,
-        productName: item.PRODUCT_NAME,
-        productPrice: `Rp. ${item.PRODUCT_PRICE.toLocaleString()}`,
-        productStock: item.PRODUCT_STOCK,
-        productStatus: item.PRODUCT_STATUS
-      }));
-      setDataSource(formattedData);
-      setFilteredData(formattedData);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-    setLoading(false);
-  };
+  useEffect(() => {
+    setFilteredData(products);
+  }, [products]);
 
   const handleSearch = (value) => {
     setSearchText(value);
     if (value) {
-      const filtered = dataSource.filter(item =>
+      const filtered = products.filter(item =>
         item.productCode.toLowerCase().includes(value.toLowerCase()) ||
         item.productName.toLowerCase().includes(value.toLowerCase())
       );
       setFilteredData(filtered);
     } else {
-      setFilteredData(dataSource);
+      setFilteredData(products);
     }
   };
 
@@ -62,119 +48,41 @@ const ProductsTable = () => {
     form.resetFields();
   };
 
-  const handleFormSubmit = async (values) => {
-    setLoading(true);
-    try {
-      await axios.post('http://127.0.0.1:8000/api/products/create/', values);
-      notification.success({
-        message: 'Success',
-        description: 'Product added successfully!',
-      });
-      fetchData();
-      handleModalCancel(); // Close modal on success
-    } catch (error) {
-      console.error('Error adding product:', error);
-      notification.error({
-        message: 'Error',
-        description: 'Failed to add product.',
-      });
-    }
-    setLoading(false);
+  const handleFormSubmit = (values) => {
+    dispatch(addProduct(values));
+    handleModalCancel();
   };
 
-  const handleEditClick = async (record) => {
-    setLoading(true);
-    try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/products/${record.key}/`);
-      setEditingProduct(response.data.data);
-      form.setFieldsValue({
-        PRODUCT_CODE: response.data.data.PRODUCT_CODE,
-        PRODUCT_NAME: response.data.data.PRODUCT_NAME,
-        PRODUCT_PRICE: response.data.data.PRODUCT_PRICE,
-        PRODUCT_STATUS: response.data.data.PRODUCT_STATUS,
-        PRODUCT_STOCK: response.data.data.PRODUCT_STOCK,
-      });
-      setIsEditModalVisible(true);
-    } catch (error) {
-      console.error('Error fetching product details:', error);
-      notification.error({
-        message: 'Error',
-        description: 'Failed to fetch product details.',
-      });
-    }
-    setLoading(false);
+  const handleEditClick = (record) => {
+    setEditingProduct(record);
+    const cleanValue = record.productPrice.replace("Rp. ","")
+    const cleanValue2 = cleanValue.replace(",","")
+    form.setFieldsValue({
+      PRODUCT_CODE: record.productCode,
+      PRODUCT_NAME: record.productName,
+      PRODUCT_PRICE: cleanValue2,
+      PRODUCT_STATUS: record.productStatus,
+      PRODUCT_STOCK: record.productStock,
+    });
+    setIsEditModalVisible(true);
   };
 
-  const handleEditFormSubmit = async (values) => {
-    setLoading(true);
-    try {
-      await axios.put(`http://127.0.0.1:8000/api/products/update/${editingProduct.PRODUCT_ID}/`, values);
-      notification.success({
-        message: 'Success',
-        description: 'Product updated successfully!',
-      });
-      fetchData();
-      setIsEditModalVisible(false); // Close modal on success
-    } catch (error) {
-      console.error('Error updating product:', error);
-      notification.error({
-        message: 'Error',
-        description: 'Failed to update product.',
-      });
-    }
-    setLoading(false);
+  const handleEditFormSubmit = (values) => {
+    dispatch(editProduct(editingProduct.key, values));
+    setIsEditModalVisible(false);
   };
 
-  const handleDelete = async (productId) => {
-    setLoading(true);
-    try {
-      await axios.delete(`http://127.0.0.1:8000/api/products/delete/${productId}/`);
-      notification.success({
-        message: 'Success',
-        description: 'Product deleted successfully!',
-      });
-      fetchData();
-    } catch (error) {
-      console.error('Error deleting product:', error);
-      notification.error({
-        message: 'Error',
-        description: 'Failed to delete product.',
-      });
-    }
-    setLoading(false);
+  const handleDelete = (productId) => {
+    dispatch(deleteProduct(productId));
   };
 
   const columns = [
-    {
-      title: 'No',
-      dataIndex: 'key',
-      key: 'key',
-    },
-    {
-      title: 'Product Code',
-      dataIndex: 'productCode',
-      key: 'productCode',
-    },
-    {
-      title: 'Product Name',
-      dataIndex: 'productName',
-      key: 'productName',
-    },
-    {
-      title: 'Price',
-      dataIndex: 'productPrice',
-      key: 'productPrice',
-    },
-    {
-      title: 'Stock',
-      dataIndex: 'productStock',
-      key: 'productStock',
-    },
-    {
-      title: 'Status',
-      dataIndex: 'productStatus',
-      key: 'productStatus',
-    },
+    { title: 'No', dataIndex: 'key', key: 'key' },
+    { title: 'Product Code', dataIndex: 'productCode', key: 'productCode' },
+    { title: 'Product Name', dataIndex: 'productName', key: 'productName' },
+    { title: 'Price', dataIndex: 'productPrice', key: 'productPrice' },
+    { title: 'Stock', dataIndex: 'productStock', key: 'productStock' },
+    { title: 'Status', dataIndex: 'productStatus', key: 'productStatus' },
     {
       title: 'Action',
       key: 'action',
@@ -196,21 +104,14 @@ const ProductsTable = () => {
 
   return (
     <div className="product-table">
-      <Button type="primary" onClick={handleAddClick} style={{ marginBottom: 16 }}>
-        Add Product
-      </Button>
-      <Search
-        placeholder="Search by code or name"
-        onSearch={handleSearch}
-        onChange={(e) => handleSearch(e.target.value)}
-        style={{ marginBottom: 16 }}
-      />
+      <Button type="primary" onClick={handleAddClick} style={{ marginBottom: 16 }}>Add Product</Button>
+      <Search placeholder="Search by code or name" onSearch={handleSearch} onChange={(e) => handleSearch(e.target.value)} style={{ marginBottom: 16 }} />
       {loading ? (
         <Spin size="large" style={{ display: 'block', textAlign: 'center', marginTop: 50 }} />
       ) : (
         <Table dataSource={filteredData} columns={columns} pagination={false} />
       )}
-
+      
       <Modal
         title="Add Product"
         visible={isModalVisible}
