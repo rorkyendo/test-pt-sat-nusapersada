@@ -61,3 +61,12 @@ export const deleteProduct = (id) => async (dispatch) => {
     dispatch({ type: SET_ERROR, payload: error.message || 'Error deleting product' });
   }
 };
+
+export const searchProductCode = async (params) => {
+  try {
+    const response = await axios.get(`http://127.0.0.1:8000/api/products/code/${params}/`);
+    return response.data;
+  } catch (error) {
+    console.error('Error getting product:', error);
+  }
+};

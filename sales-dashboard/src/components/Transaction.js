@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchCustomers } from '../redux/actions/cutsomerActions';
+import { lastSale } from '../redux/actions/saleActions';
+import { searchProductCode } from '../redux/actions/productActions';
 import { Table, Row, Col, Input, Form, Input as AntInput, Button, Select, notification, InputNumber, Popconfirm } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import '../styles/TransactionHistoryTable.css';
@@ -34,10 +36,10 @@ const Transaction = () => {
   const lastSaleID = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/sales/last/');
-      if (Object.keys(response.data.data).length > 0) {
-        setSaleID(response.data.data.sale_id);
-        sessionStorage.setItem('saleID', response.data.data.sale_id);
+      const response = await lastSale();
+      if (Object.keys(response.data).length > 0) {
+        setSaleID(response.data.sale_id+1);
+        sessionStorage.setItem('saleID', response.data.data.sale_id+1);
       } else {
         setSaleID('1');
         sessionStorage.setItem('saleID', '1');
@@ -51,18 +53,18 @@ const Transaction = () => {
   const searchProduct = async (value) => {
     setLoading(true);
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/products/code/${value}/`);
-      if (response.data.status === 400) {
+      const response = await searchProductCode(value);
+      if (response.status === 400) {
         notification.error({
           message: 'Error',
           description: response.data.message,
         });
         setProdData(null);
-      } else if (Object.keys(response.data.data).length > 0) {
-        setProdData(response.data.data);
+      } else if (Object.keys(response.data).length > 0) {
+        setProdData(response.data);
         notification.success({
           message: 'Success',
-          description: `Product Found: ${response.data.data.PRODUCT_NAME}`,
+          description: `Product Found: ${response.data.PRODUCT_NAME}`,
         });
       }
     } catch (error) {

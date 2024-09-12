@@ -4,7 +4,7 @@ import {
   EDIT_SALE, 
   DELETE_SALE, 
   SET_LOADING, 
-  SET_ERROR 
+  SET_ERROR,
 } from '../actions/saleActions';
 
 const initialState = {

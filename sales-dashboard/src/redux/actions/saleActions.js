@@ -2,6 +2,7 @@ import axios from 'axios';
 
 export const FETCH_SALES = 'FETCH_SALES';
 export const ADD_SALE = 'ADD_SALE';
+export const LAST_SALE = 'LAST_SALE';
 export const EDIT_SALE = 'EDIT_SALE';
 export const DELETE_SALE = 'DELETE_SALE';
 export const SET_LOADING = 'SET_LOADING';
@@ -62,5 +63,14 @@ export const deleteSale = (id) => async (dispatch) => {
   } catch (error) {
     console.error('Error deleting sale:', error);
     dispatch({ type: SET_ERROR, payload: error.message || 'Error deleting sale' });
+  }
+};
+
+export const lastSale = async () => {
+  try {
+    const response = await axios.get('http://127.0.0.1:8000/api/sales/last/');
+    return response.data;
+  } catch (error) {
+    console.error('Error getting last sale id:', error);
   }
 };
