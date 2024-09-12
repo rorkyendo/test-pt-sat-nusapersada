@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { Table, Input, Modal, Form, Input as AntInput, Button, Popconfirm, Spin, notification } from 'antd';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchCustomers, addCustomer, editCustomer, deleteCustomer } from '../redux/actions/cutsomerActions';
+import { Table, Input, Input as AntInput, Modal, Form, Button, Select, Popconfirm, Spin, notification } from 'antd';
 import '../styles/ProductsTable.css';
 
 const { Search } = Input;
 
 const CustomerTable = () => {
+  const dispatch = useDispatch();
+  const { customers, loading, error } = useSelector(state => state.customerState);
+
   const [dataSource, setDataSource] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [searchText, setSearchText] = useState('');
@@ -13,27 +17,14 @@ const CustomerTable = () => {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
   const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    dispatch(fetchCustomers());
+  }, [dispatch]);
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get('http://127.0.0.1:8000/api/customers/');
-      const formattedData = response.data.data.map(item => ({
-        key: item.CUSTOMER_ID,
-        customerName: item.CUSTOMER_NAME
-      }));
-      setDataSource(formattedData);
-      setFilteredData(formattedData);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-    setLoading(false);
-  };
+  useEffect(() => {
+    setFilteredData(customers);
+  }, [customers]);
 
   const handleSearch = (value) => {
     setSearchText(value);
@@ -57,81 +48,25 @@ const CustomerTable = () => {
   };
 
   const handleFormSubmit = async (values) => {
-    setLoading(true);
-    try {
-      await axios.post('http://127.0.0.1:8000/api/customers/create/', values);
-      notification.success({
-        message: 'Success',
-        description: 'Customer added successfully!',
-      });
-      fetchData();
-      handleModalCancel(); // Close modal on success
-    } catch (error) {
-      console.error('Error adding customer:', error);
-      notification.error({
-        message: 'Error',
-        description: 'Failed to add customer.',
-      });
-    }
-    setLoading(false);
+    dispatch(addCustomer(values));
+    handleModalCancel();
   };
 
   const handleEditClick = async (record) => {
-    setLoading(true);
-    try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/customers/${record.key}/`);
-      setEditingCustomer(response.data.data);
-      form.setFieldsValue({
-        CUSTOMER_NAME: response.data.data.CUSTOMER_NAME,
-      });
-      setIsEditModalVisible(true);
-    } catch (error) {
-      console.error('Error fetching customer details:', error);
-      notification.error({
-        message: 'Error',
-        description: 'Failed to fetch customer details.',
-      });
-    }
-    setLoading(false);
+    setEditingCustomer(record);
+    form.setFieldsValue({
+      CUSTOMER_NAME: record.customerName,
+    });
+    setIsEditModalVisible(true);
   };
 
   const handleEditFormSubmit = async (values) => {
-    setLoading(true);
-    try {
-      await axios.put(`http://127.0.0.1:8000/api/customers/update/${editingCustomer.CUSTOMER_ID}/`, values);
-      notification.success({
-        message: 'Success',
-        description: 'Customer updated successfully!',
-      });
-      fetchData();
-      setIsEditModalVisible(false); // Close modal on success
-    } catch (error) {
-      console.error('Error updating customer:', error);
-      notification.error({
-        message: 'Error',
-        description: 'Failed to update customer.',
-      });
-    }
-    setLoading(false);
+    dispatch(editCustomer(editingCustomer.key, values));
+    setIsEditModalVisible(false);
   };
 
-  const handleDelete = async (customerId) => {
-    setLoading(true);
-    try {
-      await axios.delete(`http://127.0.0.1:8000/api/customers/delete/${customerId}/`);
-      notification.success({
-        message: 'Success',
-        description: 'Customer deleted successfully!',
-      });
-      fetchData();
-    } catch (error) {
-      console.error('Error deleting customer:', error);
-      notification.error({
-        message: 'Error',
-        description: 'Failed to delete customer.',
-      });
-    }
-    setLoading(false);
+  const handleDelete = (customerId) => {
+    dispatch(deleteCustomer(customerId));
   };
 
   const columns = [
