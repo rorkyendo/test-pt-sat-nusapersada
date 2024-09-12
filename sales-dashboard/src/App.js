@@ -5,7 +5,7 @@ import CustomHeader from './components/Header';
 import TransactionPage from './pages/TransactionPage'; // Import the SalesPage component
 import SalesPage from './pages/SalesPage'; // Import the SalesPage component
 import CustomerPage from './pages/CustomerPage'; // Assuming you will create this page similarly
-import ProductsPage from './pages/ProductsPage'; // Assuming you will create this page similarly
+import ProductsPage from './pages/ProductPage'; // Assuming you will create this page similarly
 import './App.css';
 
 function App() {
@@ -16,7 +16,7 @@ function App() {
         <Routes>
           <Route path="/sales" element={<SalesPage />} />
           <Route path="/customer" element={<CustomerPage />} />
-          <Route path="/product" element={<ProductPage />} />
+          <Route path="/product" element={<ProductsPage />} />
           <Route path="/transaction" element={<TransactionPage />} />
           <Route path="/" element={<SalesPage />} /> {/* Default route */}
         </Routes>
