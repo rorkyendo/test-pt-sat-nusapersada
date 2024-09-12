@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { popularProduct } from '../redux/actions/saleActions'
 import { Table } from 'antd';
-import axios from 'axios';
 import '../styles/PopularProductsTable.css';
 
 const PopularProductsTable = () => {
@@ -8,16 +8,15 @@ const PopularProductsTable = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      const response = await popularProduct()
       try {
-        const response = await axios.get('http://127.0.0.1:8000/api/products/popular/');
-        if (response.data && response.data.data) {
-          setDataSource(response.data.data.map((item, index) => ({ ...item, key: index + 1 })));
+        if (response && response.data) {
+          setDataSource(response.data.map((item, index) => ({ ...item, key: index + 1 })));
         }
       } catch (error) {
         console.error('Error fetching popular products:', error);
       }
     };
-
     fetchData();
   }, []);
 

@@ -88,3 +88,12 @@ export const salesChart = async (startDate,endDate) => {
     console.error('Error getting sales chart:', error);
   }
 };
+
+export const popularProduct = async (startDate,endDate) => {
+  try {
+    const response = await axios.get('http://127.0.0.1:8000/api/products/popular/');
+    return response.data;
+  } catch (error) {
+    console.error('Error getting popular selling product:', error);
+  }
+};

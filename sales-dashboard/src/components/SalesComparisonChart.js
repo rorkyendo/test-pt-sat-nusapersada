@@ -5,7 +5,6 @@ import { salesChart } from '../redux/actions/saleActions'
 import moment from 'moment';
 import '../styles/SalesComparisonChart.css';
 
-// Register Chart.js components
 Chart.register(...registerables);
 
 const SalesComparisonChart = () => {
