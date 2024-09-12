@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchCustomers } from '../redux/actions/cutsomerActions';
-import { lastSale } from '../redux/actions/saleActions';
+import { lastSale, addSale } from '../redux/actions/saleActions';
 import { searchProductCode } from '../redux/actions/productActions';
 import { Table, Row, Col, Input, Form, Input as AntInput, Button, Select, notification, InputNumber, Popconfirm } from 'antd';
 import { useNavigate } from 'react-router-dom';
@@ -99,9 +99,10 @@ const Transaction = () => {
     setCart(cart.filter(item => item.PRODUCT_ID !== productId));
   };
 
-  const handleFormSubmit = async (values) => {
+  const handleFormSubmit = async () => {
     setLoading(true);
     const payload = {
+      SALE_ID:saleID,
       SALE_DATE: saleDate,
       CUSTOMER_ID: customerID,
       SALE_ITEMS: cart.map(item => ({
@@ -111,39 +112,25 @@ const Transaction = () => {
         IS_VERIFY: item.IS_VERIFY,
       })),
     };
-  
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/sales/create/', payload);
-      const { message, items } = response.data;
-      const totalItems = message[0].total_items;
-      const totalSuccess = message[0].total_success;
-      const totalFailed = message[0].total_failed;
-  
+      await dispatch(addSale(payload));
       notification.success({
-        message: 'Transaction Summary',
-        description: `Total Items: ${totalItems}, Success: ${totalSuccess}, Failed: ${totalFailed}`,
+        message: 'Transaction Success',
+        description: 'The transaction was added successfully.',
       });
-  
-      // Optional: Display detailed status for each item if needed
-      items.forEach(item => {
-        notification.info({
-          message: `Item ${item.id}`,
-          description: `Price: ${item.price}, Quantity: ${item.qty}, Status: ${item.status}`,
-        });
-      });
-  
-      setCart([]); // Clear cart after successful transaction
+      setCart([]); // Clear the cart after success
       form.resetFields();
-      navigate('/');
+      navigate('/'); // Redirect after form submission
     } catch (error) {
       notification.error({
         message: 'Error',
         description: 'Failed to add transaction.',
       });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  };
-  
+  };  
+
   const columns = [
     {
       title: 'No',
