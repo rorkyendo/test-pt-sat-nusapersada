@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { DatePicker, Button } from 'antd';
-import axios from 'axios';
 import { Chart, registerables } from 'chart.js';
+import { salesChart } from '../redux/actions/saleActions'
 import moment from 'moment';
 import '../styles/SalesComparisonChart.css';
 
@@ -74,14 +74,11 @@ const SalesComparisonChart = () => {
 
   const fetchChartData = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/sales/compare/', {
-        params: {
-          date_start: dateRange[0]?.format('YYYY-MM-DD'),
-          date_end: dateRange[1]?.format('YYYY-MM-DD')
-        }
-      });
-      if (response.data && Array.isArray(response.data.data)) {
-        setChartData(response.data.data);
+      const date_start = dateRange[0]?.format('YYYY-MM-DD');
+      const date_end = dateRange[1]?.format('YYYY-MM-DD');
+      const response = await salesChart(date_start,date_end)
+      if (response && Array.isArray(response.data)) {
+        setChartData(response.data);
       }
     } catch (error) {
       console.error('Error fetching chart data:', error);

@@ -74,3 +74,17 @@ export const lastSale = async () => {
     console.error('Error getting last sale id:', error);
   }
 };
+
+export const salesChart = async (startDate,endDate) => {
+  try {
+    const response = await axios.get('http://127.0.0.1:8000/api/sales/compare/', {
+      params: {
+        date_start: startDate,
+        date_end: endDate
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error getting sales chart:', error);
+  }
+};
