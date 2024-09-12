@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchCustomers } from '../redux/actions/cutsomerActions';
 import { Table, Row, Col, Input, Form, Input as AntInput, Button, Select, notification, InputNumber, Popconfirm } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import '../styles/TransactionHistoryTable.css';
@@ -7,6 +9,9 @@ import '../styles/TransactionHistoryTable.css';
 const { Option } = Select;
 
 const Transaction = () => {
+  const dispatch = useDispatch();
+
+  const { customers } = useSelector(state => state.customerState);
   const [form] = Form.useForm();
   const [customerData, setCustomer] = useState([]);
   const [saleID, setSaleID] = useState('');
@@ -18,20 +23,13 @@ const Transaction = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchData();
-    lastSaleID();
-  }, []);
+    dispatch(fetchCustomers());
+  }, [dispatch]);
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get('http://127.0.0.1:8000/api/customers/');
-      setCustomer(response.data.data);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-    setLoading(false);
-  };
+  useEffect(() => {
+    setCustomer(customers)
+    lastSaleID();
+  }, [customers]);
 
   const lastSaleID = async () => {
     setLoading(true);
@@ -225,9 +223,9 @@ const Transaction = () => {
               }}
               style={{ width: '100%' }}
             >
-              {customerData.map((customer) => (
-                <Option key={customer.CUSTOMER_ID} value={customer.CUSTOMER_ID}>
-                  {customer.CUSTOMER_NAME}
+              {customers.map((customer) => (
+                <Option key={customer.key} value={customer.key}>
+                  {customer.customerName}
                 </Option>
               ))}
             </Select>

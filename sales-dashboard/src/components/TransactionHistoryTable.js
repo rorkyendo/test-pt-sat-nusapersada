@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchSales, deleteSale } from '../redux/actions/saleActions'; // Import your actions
+import { fetchSales, deleteSale } from '../redux/actions/saleActions';
 import { Table, Input, Button, Popconfirm, notification, Spin } from 'antd';
 import { Link } from 'react-router-dom';
 import moment from 'moment';
