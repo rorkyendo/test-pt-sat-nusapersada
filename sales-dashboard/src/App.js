@@ -4,10 +4,10 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Provider } from 'react-redux'; // Import Redux Provider
 import store from './redux/store'; // Import store dari konfigurasi Redux
 import CustomHeader from './components/Header';
-import TransactionPage from './pages/TransactionPage';
-import SalesPage from './pages/SalesPage';
-import CustomerPage from './pages/CustomerPage';
-import ProductsPage from './pages/ProductPage';
+import TransactionPage from './pages/TransactionPage'; // Import the SalesPage component
+import SalesPage from './pages/SalesPage'; // Import the SalesPage component
+import CustomerPage from './pages/CustomerPage'; // Assuming you will create this page similarly
+import ProductsPage from './pages/ProductPage'; // Assuming you will create this page similarly
 import './App.css';
 
 function App() {
